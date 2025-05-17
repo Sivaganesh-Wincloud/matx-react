@@ -1,6 +1,5 @@
-# Step 1: Build the React app
-FROM node:18 AS build
-
+# Step 1: Build React App
+FROM node:18 as build
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
