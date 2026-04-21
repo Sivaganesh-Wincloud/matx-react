@@ -20,7 +20,7 @@ jobs:
         username: ${{ secrets.EC2_USER }}
         key: ${{ secrets.EC2_KEY }}
         script: |
-          cd ~/app || git clone https://github.com/your-repo.git app && cd app
+          cd ~/app || git clone https://github.com/Sivaganesh-Wincloud/matx-react.git app && cd app
           git pull origin main
 
           docker stop myapp || true
