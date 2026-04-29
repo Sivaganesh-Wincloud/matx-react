@@ -1,0 +1,8 @@
+# deploy.yml
+- hosts: web
+  become: yes
+
+  roles:
+    - common
+    - nginx
+    - app

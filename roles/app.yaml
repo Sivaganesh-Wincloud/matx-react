@@ -1,0 +1,18 @@
+# roles/app/tasks/main.yml
+- name: Install Node.js
+  apt:
+    name: nodejs
+    state: present
+
+- name: Clone repo
+  git:
+    repo: "https://github.com/Sivaganesh-Wincloud/matx-react.git"
+    dest: /opt/app
+
+- name: Install dependencies
+  command: npm install
+  args:
+    chdir: /opt/app
+
+- name: Start app
+  shell: nohup node app.js &
