@@ -1,34 +1,45 @@
-name: Deploy to EC2
+name: Build and Push to ECR
 
 on:
   push:
     branches: [ "master" ]
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-    - name: Login to Docker Hub
-      run: echo "${{ secrets.DOCKER_PASSWORD }}" | docker login -u "${{ secrets.DOCKER_USERNAME }}" --password-stdin
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
 
-    - name: Build image
-      run: docker build -t ${{ secrets.DOCKER_USERNAME }}/winapp:latest .
+      - name: Login to ECR
+        run: |
+          aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
+          | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
-    - name: Push image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/winapp:latest
+      - name: Build image
+        run: docker build -t winapp .
 
-    - name: Deploy on EC2
-      uses: appleboy/ssh-action@v1.0.3
-      with:
-        host: ${{ secrets.EC2_HOST }}
-        username: ${{ secrets.EC2_USER }}
-        key: ${{ secrets.EC2_SSH_KEY }}
-        script: |
-          docker pull ${{ secrets.DOCKER_USERNAME }}/wincloud1/winapp:latest
-          docker stop winapp || true
-          docker rm winapp || true
-          docker run -d -p 80:80 --name winapp ${{ secrets.DOCKER_USERNAME }}/wincloud1/winapp:latest
+      - name: Tag image
+        run: |
+          docker tag winapp:latest ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}:latest
+
+      - name: Push image
+        run: |
+          docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}:latest
+
+
+
+      - name: Deploy to ECS
+        run: |
+          aws ecs update-service \
+            --cluster winapp-cluster \
+            --service winapp-service \
+            --force-new-deployment
