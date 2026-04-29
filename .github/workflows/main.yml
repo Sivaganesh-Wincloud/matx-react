@@ -19,7 +19,7 @@ jobs:
       run: docker build -t ${{ secrets.DOCKER_USERNAME }}/winapp:latest .
 
     - name: Push image
-      run: docker push ${{ secrets.DOCKER_USERNAME }}/wincloud1/winapp:latest
+      run: docker push ${{ secrets.DOCKER_USERNAME }}/winapp:latest
 
     - name: Deploy on EC2
       uses: appleboy/ssh-action@v1.0.3
