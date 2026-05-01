@@ -24,12 +24,8 @@ jobs:
           aws ecr get-login-password --region ${{ secrets.AWS_REGION }} \
           | docker login --username AWS --password-stdin ${{ secrets.ECR_REGISTRY }}
 
-      - name: Debug image name
-        run: |
-           echo "${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}:latest"
-
       - name: Build image
-        run: docker build -t winapp .
+        run: docker build -t winapp:latest .
 
       - name: Tag image
         run: |
@@ -38,8 +34,6 @@ jobs:
       - name: Push image
         run: |
           docker push ${{ secrets.ECR_REGISTRY }}/${{ secrets.ECR_REPO }}:latest
-
-
 
       - name: Deploy to ECS
         run: |
