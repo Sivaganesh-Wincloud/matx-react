@@ -38,5 +38,5 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster my-cluster \
-            --service my-cluster \
+            --service my-app-service-av1v1kkl \
             --force-new-deployment
