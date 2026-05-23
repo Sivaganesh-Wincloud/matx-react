@@ -8,8 +8,8 @@ on:
 env:
   AWS_REGION: ap-south-1
   ECR_REPOSITORY: myapp
-  ECS_SERVICE: my-app-service-0qpsgs5j
-  ECS_CLUSTER: prod-cluster
+  ECS_SERVICE: my-app-service
+  ECS_CLUSTER: my-cluster
   ECS_TASK_DEFINITION: task-definition.json
   CONTAINER_NAME: myapp
 
