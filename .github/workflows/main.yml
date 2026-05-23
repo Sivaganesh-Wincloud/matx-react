@@ -1,42 +1,63 @@
-name: Build and Push to ECR
+name: Deploy to ECS
 
 on:
   push:
-    branches: [ "master" ]
+    branches:
+      - main
+
+env:
+  AWS_REGION: ap-south-1
+  ECR_REPOSITORY: myapp
+  ECS_SERVICE: myapp-service
+  ECS_CLUSTER: prod-cluster
+  ECS_TASK_DEFINITION: task-definition.json
+  CONTAINER_NAME: myapp
 
 jobs:
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Configure AWS credentials
+      - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
+          aws-region: ${{ env.AWS_REGION }}
 
-      - name: Login to ECR
+      - name: Login to Amazon ECR
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v2
 
-      - name: Build, tag, push
-        env:
-          ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPO: ${{ secrets.ECR_REPO }}
-          IMAGE_TAG: latest
+      - name: Build Docker Image
         run: |
-          IMAGE=$ECR_REGISTRY/$ECR_REPO:$IMAGE_TAG
-          docker build -t $IMAGE .
-          docker push $IMAGE
-          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+          docker build -t $ECR_REPOSITORY:${{ github.sha }} .
+
+      - name: Tag Docker Image
+        run: |
+          docker tag $ECR_REPOSITORY:${{ github.sha }} \
+          ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
+
+      - name: Push Docker Image
+        run: |
+          docker push \
+          ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
+
+      - name: Fill ECS Task Definition
+        id: task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: ${{ env.ECS_TASK_DEFINITION }}
+          container-name: ${{ env.CONTAINER_NAME }}
+          image: ${{ steps.login-ecr.outputs.registry }}/$ECR_REPOSITORY:${{ github.sha }}
 
       - name: Deploy to ECS
-        run: |
-          aws ecs update-service \
-            --cluster my-cluster \
-            --service my-app-service-av1v1kkl \
-            --force-new-deployment
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition: ${{ steps.task-def.outputs.task-definition }}
+          service: ${{ env.ECS_SERVICE }}
+          cluster: ${{ env.ECS_CLUSTER }}
+          wait-for-service-stability: true
