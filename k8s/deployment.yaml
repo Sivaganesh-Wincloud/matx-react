@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wincloud-react
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: wincloud
+  template:
+    metadata:
+      labels:
+        app: wincloud
+    spec:
+      containers:
+      - name: react
+        image: 736676210723.dkr.ecr.ap-south-1.amazonaws.com/wincloud-react:v1
+        ports:
+        - containerPort: 80

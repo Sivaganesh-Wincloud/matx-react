@@ -1,0 +1,83 @@
+# Wincloud React Dashboard - AWS EKS Blue Green Deployment
+
+## Architecture
+
+GitHub
+↓
+GitHub Actions
+↓
+Docker Build
+↓
+Amazon ECR
+↓
+Amazon EKS
+↓
+Kubernetes Blue Green Deployment
+↓
+Prometheus + Grafana
+
+
+## Tech Stack
+
+- React
+- Docker
+- AWS ECR
+- AWS EKS
+- Kubernetes
+- GitHub Actions
+- Prometheus
+- Grafana
+
+
+## Deployment Flow
+
+1. Developer pushes code
+2. GitHub Actions starts
+3. Docker image builds
+4. Image pushed to ECR
+5. Green deployment updated
+6. Health check
+7. Traffic switches from Blue to Green
+
+
+## Useful Commands
+
+Check pods:
+
+kubectl get pods
+
+
+Check services:
+
+kubectl get svc
+
+
+Check deployments:
+
+kubectl get deployments
+
+
+Check rollout:
+
+kubectl rollout status deployment
+
+
+Rollback:
+
+kubectl rollout undo deployment
+
+
+## Monitoring
+
+Grafana monitors:
+
+- Pod CPU
+- Memory
+- Node usage
+- Restart count
+- Cluster health
+
+
+## Project Status
+
+Running on AWS EKS
